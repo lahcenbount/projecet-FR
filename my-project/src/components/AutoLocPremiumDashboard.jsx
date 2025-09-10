@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+// import { CarIcon } from "lucide-react";
 
 // Custom icons
 const FuelIcon = () => (
@@ -43,12 +44,38 @@ const AutoLocPremiumDashboard = () => {
   const [cars, setCars] = useState([]);
   const [rentals, setRentals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+
+  const user = JSON.parse(localStorage.getItem('user')); 
+
+  
+  const [formData, setFormData] = useState({
+    marque: "",
+    modele: "",
+    type: "",
+    carburant: "",
+    places: "",
+    year: "",
+    price: "",
+    status: "available",
+  });
+
+  // Handler for all inputs
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // const token = localStorage.getItem('token'); 
 
   // 🔹 Fetch Cars - Replace with your actual API
   const fetchCars = async () => {
     try {
       // Replace this URL with your actual API endpoint
-      const res = await fetch("http://localhost:5000/api/cars");
+      const res = await fetch(`http://localhost:5000/api/cars/company/${user._id}`);
       const data = await res.json();
       setCars(data);
       
@@ -101,7 +128,7 @@ const AutoLocPremiumDashboard = () => {
   const fetchRentals = async () => {
     try {
       // Replace this URL with your actual API endpoint
-      const res = await fetch("http://localhost:5000/api/rentals");
+      const res = await fetch(`http://localhost:5000/api/rentals/company/${user._id}`);
       const data = await res.json();
       setRentals(data);
       
@@ -199,12 +226,12 @@ const AutoLocPremiumDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header avec gradient */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-xl">
+      {/* <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-xl">
         <div className="px-8 py-6">
           <h1 className="text-3xl font-bold tracking-tight">AutoLoc Premium</h1>
           <p className="text-blue-100 mt-1">Tableau de bord administrateur</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Stats Cards */}
       <div className="px-8 py-6 grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -335,12 +362,196 @@ const AutoLocPremiumDashboard = () => {
         {/* Véhicules - Design premium */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3">
-              <CarIcon className="text-blue-600" />
-              Flotte de Véhicules
-            </h2>
+
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3">
+                <CarIcon className="text-blue-600" />
+                Flotte de Véhicules
+              </h2>
+
+              {/* Button to toggle the form */}
+              <button
+                onClick={() => setShowForm(!showForm)}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              >
+                {showForm ? "Fermer le formulaire" : "Ajouter un véhicule"}
+              </button>
+            </div>
+
+
+            {showForm && (
+              <div className="mt-4 p-6 bg-white rounded shadow">
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+
+                    const payload = {
+                      ...formData,
+                      places: Number(formData.places),
+                      year: Number(formData.year),
+                      price: Number(formData.price),
+                      locationId: '', // replace with your company/user ID
+                    };
+
+                    try {
+                      const response = await fetch(`http://localhost:5000/api/cars/company/${user._id}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                      });
+
+                      if (response.ok) {
+                        alert("Véhicule ajouté avec succès !");
+                        setFormData({
+                          marque: "",
+                          modele: "",
+                          type: "",
+                          carburant: "",
+                          places: "",
+                          year: "",
+                          price: "",
+                          status: "available",
+                        });
+                      } else {
+                        const err = await response.json();
+                        console.error(err);
+                        // alert(`Erreur lors de l'ajout du véhicule: ${error}`);
+                        // alert("Erreur: " + err.message);
+                      }
+                    } catch (error) {
+                      console.error(error);
+                      // alert(`Erreur lors de l'ajout du véhicule: ${error}`);
+                    }
+                  }}
+                  className="space-y-4"
+                >
+                  {/* Marque */}
+                  <div>
+                    <label className="block text-gray-700">Marque</label>
+                    <input
+                      type="text"
+                      name="marque"
+                      value={formData.marque}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                      placeholder="Ex: Toyota"
+                      required
+                    />
+                  </div>
+
+                  {/* Modèle */}
+                  <div>
+                    <label className="block text-gray-700">Modèle</label>
+                    <input
+                      type="text"
+                      name="modele"
+                      value={formData.modele}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                      placeholder="Ex: Corolla"
+                      required
+                    />
+                  </div>
+
+                  {/* Type */}
+                  <div>
+                    <label className="block text-gray-700">Type</label>
+                    <input
+                      type="text"
+                      name="type"
+                      value={formData.type}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                      placeholder="Ex: SUV, Berline"
+                      required
+                    />
+                  </div>
+
+                  {/* Carburant */}
+                  <div>
+                    <label className="block text-gray-700">Carburant</label>
+                    <select
+                      name="carburant"
+                      value={formData.carburant}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="Essence">Essence</option>
+                      <option value="Diesel">Diesel</option>
+                      <option value="Hybride">Hybride</option>
+                      <option value="Électrique">Électrique</option>
+                    </select>
+                  </div>
+
+                  {/* Places */}
+                  <div>
+                    <label className="block text-gray-700">Nombre de places</label>
+                    <input
+                      type="number"
+                      name="places"
+                      value={formData.places}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                      placeholder="Ex: 4"
+                      required
+                    />
+                  </div>
+
+                  {/* Year */}
+                  <div>
+                    <label className="block text-gray-700">Année</label>
+                    <input
+                      type="number"
+                      name="year"
+                      value={formData.year}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                      placeholder="Ex: 2023"
+                      required
+                    />
+                  </div>
+
+                  {/* Price */}
+                  <div>
+                    <label className="block text-gray-700">Prix</label>
+                    <input
+                      type="number"
+                      name="price"
+                      value={formData.price}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                      placeholder="Ex: 500"
+                      required
+                    />
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-gray-700">Statut</label>
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                    >
+                      <option value="available">Disponible</option>
+                      <option value="booked">Réservé</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                  >
+                    Enregistrer
+                  </button>
+                </form>
+              </div>
+            )}
+
           </div>
-          
           <div className="p-6">
             {cars.length === 0 ? (
               <div className="text-center py-12 text-gray-500">

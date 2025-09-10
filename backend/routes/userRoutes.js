@@ -6,6 +6,7 @@ const {
   getUserById,
   updateUser,
   deleteUser,
+  updateIsComplet
 } = require("../controllers/userController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -17,6 +18,7 @@ router.use(authorize("admin"));
 router.get("/", getAllUsers);
 router.get("/:id", getUserById);
 router.put("/:id", updateUser);
+router.put("/isComplet/:id", updateIsComplet);
 router.delete("/:id", deleteUser);
 
 module.exports = router;

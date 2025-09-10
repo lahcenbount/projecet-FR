@@ -6,13 +6,15 @@ import { useNavigate } from 'react-router-dom'; // ✅ Import useNavigate
 const CompanyInfoForm = () => {
   const navigate = useNavigate(); // ✅ Créer navigate
   const [formData, setFormData] = useState({
+    userId: '',
     companyName: '',
-    NameProprietaire: '',
     businessLicense: '',
     companyLocation: '',
-    email: '',
-    modePass: ''
   });
+
+  const user = JSON.parse(localStorage.getItem('user')); 
+  const token = localStorage.getItem('token'); 
+
 
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
@@ -38,8 +40,8 @@ const CompanyInfoForm = () => {
   const triggerFileInput = () => fileInputRef.current?.click();
 
   const handleSubmit = async () => {
-    if (!formData.companyName || !formData.NameProprietaire || !formData.businessLicense || 
-        !formData.companyLocation || !formData.email || !formData.modePass) {
+    if (!formData.companyName || !formData.businessLicense || 
+        !formData.companyLocation) {
       setError("Veuillez remplir tous les champs obligatoires.");
       return;
     }
@@ -48,6 +50,8 @@ const CompanyInfoForm = () => {
       setError(""); 
       setSuccess("");
 
+      formData.userId = user._id;
+
       const data = new FormData();
       Object.keys(formData).forEach(key => data.append(key, formData[key]));
       if (logoFile) data.append("logo", logoFile);
@@ -55,27 +59,47 @@ const CompanyInfoForm = () => {
       const res = await axios.post(
         "http://localhost:5000/api/companies",
         data,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${token}` // <-- ajout du token
+        }
+      }
       );
+
+
+    //   const res1 = await axios.post(
+    //   `http://localhost:5000/api/users/isComplet/${formData.userId}`,
+    //   { isComplet: true },
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json", // <-- changer ici
+    //       "Authorization": `Bearer ${token}`
+    //     }
+    //   }
+    // );
+
+
+
 
       setSuccess(res.data.message);
       console.log("Company info:", res.data.company);
+      // setSuccess(res1.data);
+      // console.log("Company info:", res1.data);
 
       // Reset form
       setFormData({
+        userId: '',
         companyName: '',
-        NameProprietaire: '',
         businessLicense: '',
         companyLocation: '',
-        email: '',
-        modePass: ''
       });
       setLogoFile(null);
       setLogoPreview(null);
       fileInputRef.current.value = null;
 
       // ✅ Navigate automatically to AutoLoc Premium Dashboard
-      navigate("/auto-loc-premium-dashboard");
+      navigate("/company_dashboard");
 
     } catch (err) {
       setError(err.response?.data?.message || "Erreur inconnue");
@@ -121,12 +145,14 @@ const CompanyInfoForm = () => {
             </div>
 
             <div className="space-y-4">
+              <input type="text" name="propName" value={user.nom} placeholder="Company Name" className="w-full px-3 py-2 border rounded" disabled />
+              <input type="text" name="email" value={user.email}  placeholder="Company Name" className="w-full px-3 py-2 border rounded" disabled />
               <input type="text" name="companyName" value={formData.companyName} onChange={handleInputChange} placeholder="Company Name" className="w-full px-3 py-2 border rounded" />
               <input type="text" name="NameProprietaire" value={formData.NameProprietaire} onChange={handleInputChange} placeholder="Name Proprietaire" className="w-full px-3 py-2 border rounded" />
               <input type="text" name="businessLicense" value={formData.businessLicense} onChange={handleInputChange} placeholder="Business License" className="w-full px-3 py-2 border rounded" />
               <input type="text" name="companyLocation" value={formData.companyLocation} onChange={handleInputChange} placeholder="Company Location" className="w-full px-3 py-2 border rounded" />
-              <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" className="w-full px-3 py-2 border rounded" />
-              <input type="password" name="modePass" value={formData.modePass} onChange={handleInputChange} placeholder="Password" className="w-full px-3 py-2 border rounded" />
+              {/* <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" className="w-full px-3 py-2 border rounded" />
+              <input type="password" name="modePass" value={formData.modePass} onChange={handleInputChange} placeholder="Password" className="w-full px-3 py-2 border rounded" /> */}
             </div>
           </div>
         </div>

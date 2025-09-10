@@ -83,10 +83,10 @@ export default function AdminDashboard() {
   const getStatusBadge = (status) => {
     const statusConfig = {
       "En attente": { color: "bg-yellow-100 text-yellow-800" },
-      Approuvée: { color: "bg-green-100 text-green-800" },
-      "En cours": { color: "bg-blue-100 text-blue-800" },
-      Refusée: { color: "bg-red-100 text-red-800" },
-      Actif: { color: "bg-green-100 text-green-800" },
+      "approved": { color: "bg-green-100 text-green-800" },
+      "pending": { color: "bg-blue-100 text-blue-800" },
+      "Refusée": { color: "bg-red-100 text-red-800" },
+      "Actif": { color: "bg-green-100 text-green-800" },
       "En révision": { color: "bg-orange-100 text-orange-800" },
     }
     const config = statusConfig[status] || statusConfig["En attente"]
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
                       <TableRow key={request._id || request.id}>
                         <TableCell>{request._id || request.id}</TableCell>
                         <TableCell>{request.userId?.nom || "—"}</TableCell>
-                        <TableCell>{request.carId?.locationId?.nom || "—"}</TableCell>
+                        <TableCell>{request.carId?.locationId?.companyName || "—"}</TableCell>
                         <TableCell>
                           {request.carId?.marque} {request.carId?.modele}
                         </TableCell>
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                     {companies.map((company) => (
                       <TableRow key={company._id}>
                         <TableCell className="font-medium">{company.companyName}</TableCell>
-                        <TableCell>{company.NameProprietaire}</TableCell>
+                        <TableCell>{company.userId.nom}</TableCell>
                         <TableCell className="flex items-center space-x-2">
                           <Car className="h-4 w-4 text-gray-500" /> <span>{company.carsNumber}</span>
                         </TableCell>
@@ -251,7 +251,7 @@ export default function AdminDashboard() {
                       <TableRow key={request._id || request.id}>
                         <TableCell>{request._id || request.id}</TableCell>
                         <TableCell>{request.userId?.nom || "—"}</TableCell>
-                        <TableCell>{request.carId?.locationId?.nom || "—"}</TableCell>
+                        <TableCell>{request.carId?.locationId?.companyName || "—"}</TableCell>
                         <TableCell>
                           {request.carId?.marque} {request.carId?.modele}
                         </TableCell>

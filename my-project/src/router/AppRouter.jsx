@@ -56,25 +56,25 @@ const AppRouter = () => {
         <Route 
           path="/dashboard" 
           element={
-            <ProtectedRoute>
+            <PublicRoute>
               <Layout>
                 <AdminDashboard />
               </Layout>
-            </ProtectedRoute>
+            </PublicRoute>
           } 
         />
         <Route 
           path="/car-rental" 
           element={
-            <ProtectedRoute>
+            <PublicRoute>
               <Layout>
                 <CarRentalDashboard />
               </Layout>
-            </ProtectedRoute>
+            </PublicRoute>
           } 
         />
         <Route 
-  path="/auto-loc-premium-dashboard" 
+           path="/company_dashboard" 
           element={
             <PublicRoute>
               <Layout>

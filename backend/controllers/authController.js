@@ -22,9 +22,13 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, motDePasse } = req.body;
+    
+    console.log("req.body: ")
+    console.log(req.body)
+
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: "Email ou mot de passe incorrect" });
-
+    
     const isMatch = await bcrypt.compare(motDePasse, user.motDePasse);
     if (!isMatch) return res.status(401).json({ message: "Email ou mot de passe incorrect" });
 

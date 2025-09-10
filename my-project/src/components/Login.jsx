@@ -54,16 +54,23 @@ export default function Login() {
     setSuccess('');
 
     try {
+      console.log("email: ")
+      console.log(formData.email)
+      console.log("passwd: ")
+      console.log(formData.password)
+
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
-          motDePasse: formData.password 
+          email: formData.email.trim(),
+          motDePasse: formData.password.trim()
         })
       });
 
       const data = await response.json();
+
+      console.log(data)
 
       if (!response.ok) {
         setError(data.message || 'Erreur de connexion');
@@ -71,12 +78,24 @@ export default function Login() {
         setSuccess('Connexion réussie ! Redirection...');
 
         // Stocker le token pour les futures requêtes
+        localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('token', data.token);
 
         // Enregistrer les infos utilisateur dans AuthContext
-        login(data.user);
+        // login(data.user);
 
-        setTimeout(() => navigate('/dashboard'), 1000);
+        // Redirection selon rôle
+        if(data.user.role === "admin"){
+          setTimeout(() => navigate('/dashboard'), 1000);
+        } else if(data.user.role === "company") {
+          if(data.user.isComplet === false) {
+            setTimeout(() => navigate('/add-company'), 1000);
+          } else {
+            setTimeout(() => navigate('/company_dashboard'), 1000);
+          }
+        } else {
+          setTimeout(() => navigate('/'), 1000);
+        }
       }
     } catch {
       setError('Erreur serveur. Réessayez plus tard.');

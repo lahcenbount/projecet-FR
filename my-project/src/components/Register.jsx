@@ -10,9 +10,11 @@ export default function Register() {
     nom: '',
     prenom: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    motDePasse: '',
+    role: 'user', // Default role
+    location: ''
   });
+
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,12 +38,12 @@ export default function Register() {
       setError("Email invalide");
       return false;
     }
-    if (formData.password.length < 6) {
+    if (formData.motDePasse.length < 6) {
       setError("Le mot de passe doit contenir au moins 6 caractères");
       return false;
     }
-    if (formData.password !== formData.confirmPassword) {
-      setError("Les mots de passe ne correspondent pas");
+    if (!formData.role) {
+      setError("Veuillez sélectionner un rôle");
       return false;
     }
     return true;
@@ -56,14 +58,40 @@ export default function Register() {
     setError('');
 
     try {
-      // Simulation d'une requête API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nom: formData.nom,
+          prenom: formData.prenom,
+          email: formData.email,
+          motDePasse: formData.motDePasse,
+          role: formData.role,
+          location: formData.location
+        })
+      });
 
-      setSuccess("Inscription réussie ! Redirection vers la connexion...");
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || 'Erreur lors de l\'inscription');
+      } else {
+        setSuccess("Inscription réussie ! Redirection en cours...");
+
+        // Stocker l'ID et le token
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('token', data.token);
+
+        // Redirection selon rôle
+        if(data.user.role === "company") {
+          setTimeout(() => navigate('/add-company'), 1000);
+        } else {
+          setTimeout(() => navigate('/'), 1000);
+        }
+      }
+
     } catch (err) {
+      console.error(err);
       setError("Erreur lors de l'inscription. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
@@ -137,8 +165,8 @@ export default function Register() {
               <Lock className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
               <input
                 type="password"
-                name="password"
-                value={formData.password}
+                name="motDePasse"
+                value={formData.motDePasse}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
                 placeholder="••••••••"
@@ -148,19 +176,17 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le mot de passe</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                placeholder="••••••••"
-                disabled={isLoading}
-              />
-            </div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+            >
+              <option value="user">User</option>
+              <option value="company">Entreprise</option>
+            </select>
           </div>
 
           {error && (
@@ -177,7 +203,6 @@ export default function Register() {
             </div>
           )}
 
-          {/* 🔵 Bouton S'inscrire */}
           <button
             type="submit"
             disabled={isLoading}
@@ -193,7 +218,6 @@ export default function Register() {
             )}
           </button>
 
-          {/* 🟣 Nouveau bouton "Ajouter une entreprise" */}
           <button
             type="button"
             onClick={() => navigate('/add-company')}
@@ -206,12 +230,11 @@ export default function Register() {
         <div className="mt-6 text-center text-sm">
           Déjà inscrit ?{' '}
           <Link
-            to="/add-company"
+            to="/login"
             className="text-blue-600 hover:text-blue-500 font-medium"
           >
             Se connecter
           </Link>
-        
         </div>
       </div>
     </div>

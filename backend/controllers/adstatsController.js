@@ -8,7 +8,8 @@ const getLatestStats = async (req, res) => {
     const demandesCount = await Rental.countDocuments();
     
     // 2️⃣ الشركات النشيطة
-    const entreprisesActivesCount = await Company.countDocuments({ statut: "Actif" });
+    const entreprisesActivesCount = await Company.countDocuments({ status: "Active" });
+    console.log(entreprisesActivesCount)
     
     // 3️⃣ السيارات المتوفرة
     const vehiculesDisponiblesCount = await Car.countDocuments({ status: "available" });

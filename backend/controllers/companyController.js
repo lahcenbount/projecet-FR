@@ -1,47 +1,57 @@
 // controllers/companyController.js
 const Company = require("../models/Company");
+const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
-// Vérifier si email ou businessLicense existe déjà
-const checkDuplicateCompany = async (email, businessLicense) => {
-  return await Company.findOne({ $or: [{ email }, { businessLicense }] });
+// Vérifier si companyName ou businessLicense existe déjà
+const checkDuplicateCompany = async (companyName, businessLicense) => {
+  return await Company.findOne({
+    $or: [
+      { companyName },
+      { businessLicense }
+    ]
+  });
 };
 
 // Create new company
 exports.createCompany = async (req, res) => {
   try {
     const {
+      userId,
       companyName,
-      NameProprietaire,
       businessLicense,
       companyLocation,
-      email,
-      modePass
+      status,
+      logo,
+      chiffreAffaires,
+      carsNumber
     } = req.body;
 
     // Vérification duplicata
-    const existingCompany = await checkDuplicateCompany(email, businessLicense);
+    const existingCompany = await checkDuplicateCompany(companyName, businessLicense);
     if (existingCompany) {
-      return res.status(400).json({ message: "Email ou businessLicense déjà utilisé" });
+      return res.status(400).json({ message: "Nom d'entreprise ou businessLicense déjà utilisé" });
     }
-
-    // Hasher le mot de passe
-    const hashedPassword = await bcrypt.hash(modePass, 10);
 
     // Créer la nouvelle entreprise
     const company = await Company.create({
+      userId,
       companyName,
-      NameProprietaire,
       businessLicense,
       companyLocation,
-      email,
-      modePass: hashedPassword,
+      status,
+      logo: logo || "",
+      chiffreAffaires: chiffreAffaires || 0,
+      carsNumber: carsNumber || 0
     });
+
+    // Mettre à jour isComplet à true pour l'utilisateur
+    await User.findByIdAndUpdate(userId, { isComplet: true }, { new: true });
 
     // Réponse
     res.status(201).json({
       message: "Entreprise créée avec succès",
-      company,
+      company
     });
 
   } catch (error) {
@@ -58,10 +68,15 @@ exports.createCompany = async (req, res) => {
   }
 };
 
+
+
+
+
 // Get all companies
 exports.getCompanies = async (req, res) => {
   try {
-    const companies = await Company.find().select("-modePass"); // Exclut le mot de passe
+    const companies = await Company.find()
+    .populate("userId", "nom"); // Exclut le mot de passe
     res.status(200).json(companies);
   } catch (error) {
     console.error("Erreur récupération entreprises:", error);

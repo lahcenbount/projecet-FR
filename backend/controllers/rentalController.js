@@ -1,4 +1,6 @@
-const Rental = require("../models/Rental");
+const Rental = require('../models/Rental');
+const Car = require('../models/Car');
+const Company = require('../models/Company');
 
 // جلب جميع الحجوزات
 const getAllRentals = async (req, res) => {
@@ -8,7 +10,7 @@ const getAllRentals = async (req, res) => {
       .populate({
         path: "carId",
         select: "marque modele year status price locationId createdAt updatedAt",
-        populate: { path: "locationId", select: "nom" } // populate location من car
+        populate: { path: "locationId", select: "companyName" } // populate location من car
       });
     res.json(rentals);
   } catch (err) {
@@ -28,6 +30,34 @@ const getRentalById = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
+
+
+const getRentalByUserId = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    console.log(`userId: ${userId}`);
+
+    // Find the company of this user
+    const company = await Company.findOne({ userId }).select("userId");
+    if (!company) {
+      return res.status(404).json({ message: "Company not found for this user" });
+    }
+
+    // Get cars for this company and extract their IDs
+    const cars = await Car.find({ locationId: company._id }).select('_id');
+    const carIds = cars.map(car => car._id); // array of ObjectId
+
+    // Get rentals for these cars and populate car info
+    const rentals = await Rental.find({ carId: { $in: carIds } }).populate('carId');
+
+    res.status(200).json(rentals);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 // إنشاء حجز جديد
 const createRental = async (req, res) => {
@@ -71,7 +101,7 @@ const getNewRentals = async (req, res) => {
       .populate({
         path: "carId",
         select: "marque modele year price locationId",
-        populate: { path: "locationId", select: "nom" }
+        populate: { path: "locationId", select: "companyName" }
       });
     res.json(rentals);
   } catch (err) {
@@ -86,4 +116,5 @@ module.exports = {
   updateRentalStatus,
   deleteRental,
   getNewRentals, // ⬅️ زدنا هادي
+  getRentalByUserId
 };

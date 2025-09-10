@@ -4,7 +4,9 @@ const {
   getCarById,
   createCar,
   updateCar,
-  deleteCar
+  deleteCar,
+  getCarsByUserId,
+  createCarByUserId
 } = require("../controllers/carController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -22,9 +24,11 @@ const router = express.Router();
 // بعض Routes يمكن الوصول لها من جميع المستخدمين المسجلين
 router.get("/", getAllCars);
 router.get("/:id", getCarById);
+router.get("/company/:id", getCarsByUserId);
 
 // Routes خاصة بالـ Admin
 router.post("/", createCar);
+router.post("/company/:id", createCarByUserId);
 router.put("/:id", updateCar);
 router.delete("/:id", deleteCar);
 

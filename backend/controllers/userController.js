@@ -22,6 +22,25 @@ const getUserById = async (req, res) => {
   }
 };
 
+const updateIsComplet = async (req, res) => {
+  try {
+    const { isComplet } = req.body;
+    const updateData = { isComplet };
+
+    // if (motDePasse) {
+    //   updateData.motDePasse = await bcrypt.hash(motDePasse, 10);
+    // }
+
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true }).select("-motDePasse");
+
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 // تعديل مستخدم
 const updateUser = async (req, res) => {
   try {
@@ -58,5 +77,6 @@ module.exports = {
   getAllUsers,
   getUserById,
   updateUser,
-  deleteUser
+  deleteUser,
+  updateIsComplet
 };
